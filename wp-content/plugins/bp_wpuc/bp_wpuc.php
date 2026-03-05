@@ -6,6 +6,10 @@
  * Version: ${build.version}
  * Author: ${author.name}
  * Author URI: ${author.url}
+ * Text Domain: bpwpuc
+ * Domain Path: /languages
+ * Requires at least: 6.0
+ * Requires PHP:      7.3
  */
 
 /**
@@ -16,46 +20,26 @@
  * @author      ${author.name}
  */
 
-function is_wplogin()
-{
-    $ABSPATH_MY = str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, ABSPATH);
-    return ((in_array($ABSPATH_MY . 'wp-login.php', get_included_files()) || in_array($ABSPATH_MY . 'wp-register.php', get_included_files())) || (isset($_GLOBALS['pagenow']) && $GLOBALS['pagenow'] === 'wp-login.php') || $_SERVER['PHP_SELF'] == '/wp-login.php');
-}
+use BPExtensions\WPUC\Admin\Settings;
+use BPExtensions\WPUC\Plugin;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+define('PATH_BPWPUC', __DIR__);
+
+add_action('init', [Plugin::class, 'loadTranslationDomain'], 0);
 
 // Only on front-end
-if (!is_admin() and !is_wplogin()) {
+if (!is_admin() && !Plugin::isAdmin()) {
 
     // On system initialization
-    add_action('init', function () {
+    add_action('init', [Plugin::class, 'frontend'], 0);
 
-        // Check if user should see Under Construction page
-        $user = wp_get_current_user();
-        if (!$user or array_intersect(['editor', 'administrator'], $user->roles) === []) {
-
-            // Get Under Construction template
-            function bpwpuc_get_template()
-            {
-                ob_start();
-                include __DIR__ . '/themes/default/index.php';
-                return ob_get_clean();
-            }
-
-            $template = bpwpuc_get_template();
-
-            // Send proper status
-            add_action('wp', function () {
-                status_header(503);
-            });
-
-            // Replace buffer with the template
-            ob_start(function () use ($template) {
-                return $template;
-            });
-
-            // Show page output
-            add_action('shutdown', function () {
-                ob_get_flush();
-            }, 0);
-        }
-    }, 0);
+// Administration
+} else {
+    if (is_admin()) {
+        add_action('admin_menu', [Settings::class, 'registerMenuItem']);
+        add_action('admin_init', [Settings::class, 'registerSettingsFields']);
+        add_filter('plugin_action_links_bp_wpuc/bp_wpuc.php', [Settings::class, 'addSettingsLink']);
+    }
 }
