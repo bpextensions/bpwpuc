@@ -1,0 +1,19 @@
+{
+    "name": "bpextensions/bp_wpuc",
+    "description": "A Simple Wordpress Under Construction plugin.",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "BPExtensions\\WPUC\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "BP Extensions",
+            "email": "support@bpextensions.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
